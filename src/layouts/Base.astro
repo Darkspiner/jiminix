@@ -1,0 +1,154 @@
+---
+import '../styles/global.css';
+
+interface Props {
+	title?: string;
+	description?: string;
+}
+
+const {
+	title,
+	description = 'Portfolio und Playground – Projekte, Experimente und mehr.',
+} = Astro.props;
+
+const fullTitle = title ? `${title} · jiminix` : 'jiminix';
+const canonical = new URL(Astro.url.pathname, Astro.site);
+
+const nav = [
+	{ href: '/', label: 'Start' },
+	{ href: '/projects', label: 'Projekte' },
+	{ href: '/lab', label: 'Lab' },
+	{ href: '/about', label: 'Über mich' },
+];
+const current = Astro.url.pathname.replace(/\/$/, '') || '/';
+---
+
+<!doctype html>
+<html lang="de">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<link rel="canonical" href={canonical} />
+		<meta name="generator" content={Astro.generator} />
+		<title>{fullTitle}</title>
+		<meta name="description" content={description} />
+		<meta property="og:title" content={fullTitle} />
+		<meta property="og:description" content={description} />
+		<meta property="og:url" content={canonical} />
+		<meta property="og:type" content="website" />
+		<script is:inline>
+			// Theme vor dem ersten Rendern setzen, damit nichts aufblitzt
+			const stored = localStorage.getItem('theme');
+			const prefersDark = matchMedia('(prefers-color-scheme: dark)').matches;
+			document.documentElement.dataset.theme = stored ?? (prefersDark ? 'dark' : 'light');
+		</script>
+	</head>
+	<body>
+		<header>
+			<a class="logo" href="/">jiminix</a>
+			<nav>
+				{
+					nav.map((item) => (
+						<a
+							href={item.href}
+							aria-current={
+								current === item.href || (item.href !== '/' && current.startsWith(item.href))
+									? 'page'
+									: undefined
+							}
+						>
+							{item.label}
+						</a>
+					))
+				}
+				<button id="theme-toggle" type="button" aria-label="Farbschema wechseln">◐</button>
+			</nav>
+		</header>
+
+		<main>
+			<slot />
+		</main>
+
+		<footer>
+			<span>© {new Date().getFullYear()} jiminix</span>
+			<span>
+				<a href="/impressum">Impressum</a> · <a href="/datenschutz">Datenschutz</a>
+			</span>
+		</footer>
+
+		<script>
+			document.getElementById('theme-toggle')?.addEventListener('click', () => {
+				const root = document.documentElement;
+				const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+				root.dataset.theme = next;
+				localStorage.setItem('theme', next);
+			});
+		</script>
+	</body>
+</html>
+
+<style>
+	header,
+	footer {
+		width: 100%;
+		max-width: var(--max-width);
+		margin: 0 auto;
+		padding: 1rem;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	header {
+		border-bottom: 1px solid var(--border);
+	}
+
+	footer {
+		border-top: 1px solid var(--border);
+		font-size: 0.875rem;
+		color: var(--muted);
+	}
+
+	.logo {
+		font-family: var(--font-mono);
+		font-weight: 700;
+		font-size: 1.2rem;
+		color: var(--text);
+		text-decoration: none;
+	}
+
+	nav {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1rem;
+		align-items: center;
+	}
+
+	nav a {
+		color: var(--muted);
+		text-decoration: none;
+	}
+
+	nav a:hover,
+	nav a[aria-current='page'] {
+		color: var(--text);
+	}
+
+	nav a[aria-current='page'] {
+		font-weight: 600;
+	}
+
+	#theme-toggle {
+		background: none;
+		border: 1px solid var(--border);
+		border-radius: 999px;
+		color: var(--text);
+		cursor: pointer;
+		width: 2rem;
+		height: 2rem;
+	}
+</style>

@@ -1,0 +1,112 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+
+<Base title="Game of Life" description="Conway's Game of Life im Browser.">
+	<a href="/lab">← Lab</a>
+	<h1>Conway's Game of Life</h1>
+	<p class="muted">Klicken oder ziehen, um Zellen zu setzen.</p>
+
+	<div class="controls">
+		<button id="gol-toggle" class="button" type="button">Start</button>
+		<button id="gol-random" class="button secondary" type="button">Zufall</button>
+		<button id="gol-clear" class="button secondary" type="button">Leeren</button>
+	</div>
+	<canvas id="gol" width="640" height="400"></canvas>
+</Base>
+
+<style>
+	.controls {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		margin: 1rem 0;
+	}
+
+	.controls button {
+		cursor: pointer;
+		font: inherit;
+	}
+
+	canvas {
+		width: 100%;
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		background: var(--surface);
+		touch-action: none;
+		cursor: crosshair;
+	}
+</style>
+
+<script>
+	const CELL = 10;
+	const canvas = document.getElementById('gol') as HTMLCanvasElement;
+	const ctx = canvas.getContext('2d')!;
+	const cols = canvas.width / CELL;
+	const rows = canvas.height / CELL;
+	let grid = new Uint8Array(cols * rows);
+	let running = false;
+	let timer: number | undefined;
+
+	const idx = (x: number, y: number) => ((y + rows) % rows) * cols + ((x + cols) % cols);
+
+	function draw() {
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent');
+		for (let y = 0; y < rows; y++) {
+			for (let x = 0; x < cols; x++) {
+				if (grid[idx(x, y)]) ctx.fillRect(x * CELL, y * CELL, CELL - 1, CELL - 1);
+			}
+		}
+	}
+
+	function step() {
+		const next = new Uint8Array(grid.length);
+		for (let y = 0; y < rows; y++) {
+			for (let x = 0; x < cols; x++) {
+				let n = 0;
+				for (let dy = -1; dy <= 1; dy++)
+					for (let dx = -1; dx <= 1; dx++) if (dx || dy) n += grid[idx(x + dx, y + dy)];
+				const alive = grid[idx(x, y)];
+				next[idx(x, y)] = n === 3 || (alive && n === 2) ? 1 : 0;
+			}
+		}
+		grid = next;
+		draw();
+	}
+
+	function setRunning(value: boolean) {
+		running = value;
+		toggle.textContent = running ? 'Pause' : 'Start';
+		clearInterval(timer);
+		if (running) timer = window.setInterval(step, 80);
+	}
+
+	const toggle = document.getElementById('gol-toggle')!;
+	toggle.addEventListener('click', () => setRunning(!running));
+	document.getElementById('gol-random')!.addEventListener('click', () => {
+		grid = grid.map(() => (Math.random() < 0.25 ? 1 : 0));
+		draw();
+	});
+	document.getElementById('gol-clear')!.addEventListener('click', () => {
+		grid = new Uint8Array(cols * rows);
+		draw();
+	});
+
+	let painting = false;
+	function paint(e: PointerEvent) {
+		const rect = canvas.getBoundingClientRect();
+		const x = Math.floor(((e.clientX - rect.left) / rect.width) * cols);
+		const y = Math.floor(((e.clientY - rect.top) / rect.height) * rows);
+		grid[idx(x, y)] = 1;
+		draw();
+	}
+	canvas.addEventListener('pointerdown', (e) => {
+		painting = true;
+		paint(e);
+	});
+	canvas.addEventListener('pointermove', (e) => painting && paint(e));
+	window.addEventListener('pointerup', () => (painting = false));
+
+	draw();
+</script>

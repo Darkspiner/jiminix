@@ -1,16 +1,66 @@
 ---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+
+const featured = (await getCollection('projects', ({ data }) => data.featured && !data.draft)).sort(
+	(a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Base>
+	<section class="hero">
+		<p class="muted">Hallo, ich bin</p>
+		<h1>TODO Dein Name</h1>
+		<p class="lead">
+			Informatiker (M.&nbsp;Sc.) – TODO: ein Satz zu deinem Schwerpunkt, z.&nbsp;B. „Ich baue robuste
+			Software für …“.
+		</p>
+		<div class="actions">
+			<a class="button" href="/projects">Projekte ansehen</a>
+			<a class="button secondary" href="/about">Über mich</a>
+		</div>
+	</section>
+
+	<section>
+		<h2>Ausgewählte Projekte</h2>
+		<div class="grid">
+			{featured.map((project) => <ProjectCard project={project} />)}
+		</div>
+	</section>
+
+	<section>
+		<h2>Lab</h2>
+		<p>
+			Im <a href="/lab">Lab</a> probiere ich Ideen und Technologien aus – kleine interaktive Experimente
+			direkt im Browser.
+		</p>
+	</section>
+</Base>
+
+<style>
+	.hero {
+		padding: 3rem 0 2rem;
+	}
+
+	.hero h1 {
+		font-size: clamp(2.2rem, 6vw, 3.5rem);
+		margin: 0.25rem 0 1rem;
+	}
+
+	.lead {
+		font-size: 1.15rem;
+		max-width: 40rem;
+	}
+
+	.actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+		margin-top: 1.5rem;
+	}
+
+	section + section {
+		margin-top: 3rem;
+	}
+</style>
