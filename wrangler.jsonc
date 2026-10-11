@@ -1,0 +1,10 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "jiminix",
+	"compatibility_date": "2026-10-01",
+	// Statische Astro-Ausgabe aus `npm run build`
+	"assets": {
+		"directory": "./dist",
+		"not_found_handling": "404-page"
+	}
+}
